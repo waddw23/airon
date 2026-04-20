@@ -1,0 +1,1472 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>大臭屁的厨房 - 点单版</title>
+    <style>
+      :root {
+        --green-main: #2d8a58;
+        --green-deep: #1f6743;
+        --line: #e9ecea;
+        --left-bg: #f3f4f4;
+        --text-main: #1f2329;
+        --text-sub: #697077;
+        --star: #f2c94c;
+        --bottom-nav: rgba(14, 16, 21, 0.94);
+        --order-bg: rgba(20, 26, 34, 0.97);
+      }
+
+      * {
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+        background: radial-gradient(circle at 10% 15%, #4f9f72 0%, #1f573d 35%, #111316 100%);
+        color: var(--text-main);
+      }
+
+      body {
+        display: grid;
+        place-items: center;
+      }
+
+      .phone {
+        width: min(432px, 100vw);
+        height: min(960px, 100vh);
+        position: relative;
+        overflow: hidden;
+        border-radius: 28px;
+        box-shadow: 0 26px 60px rgba(0, 0, 0, 0.38);
+        background: #fff;
+      }
+
+      .status-bar {
+        height: 36px;
+        padding: 8px 14px 0;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 14px;
+        font-weight: 700;
+        background: linear-gradient(180deg, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0));
+        position: relative;
+        z-index: 2;
+      }
+
+      .header {
+        margin-top: -36px;
+        height: 168px;
+        padding: 44px 14px 12px;
+        color: #fff;
+        background:
+          linear-gradient(180deg, rgba(21, 72, 49, 0.78), rgba(34, 109, 73, 0.9)),
+          radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.18), transparent 35%),
+          radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.14), transparent 30%),
+          linear-gradient(135deg, var(--green-deep), var(--green-main));
+      }
+
+      .shop-line {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .avatar {
+        width: 62px;
+        height: 62px;
+        border-radius: 12px;
+        border: 2px solid rgba(255, 255, 255, 0.5);
+        background:
+          radial-gradient(circle at 30% 30%, rgba(255, 236, 152, 0.95), rgba(235, 198, 84, 0.9)),
+          linear-gradient(145deg, #ffd25f, #f1bb2f);
+        position: relative;
+      }
+
+      .avatar::before {
+        content: "";
+        position: absolute;
+        inset: 15px;
+        border-radius: 50%;
+        background: rgba(42, 37, 20, 0.55);
+      }
+
+      .shop-meta {
+        flex: 1;
+      }
+
+      .shop-name {
+        margin: 0;
+        font-size: 40px;
+        font-weight: 900;
+        letter-spacing: 0.5px;
+        line-height: 1;
+      }
+
+      .shop-count {
+        margin-top: 8px;
+        font-size: 30px;
+        opacity: 0.95;
+      }
+
+      .header-icons {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        align-items: flex-end;
+      }
+
+      .action-btn {
+        border: 0;
+        color: #fff;
+        background: rgba(255, 255, 255, 0.16);
+        border-radius: 999px;
+        font-size: 16px;
+        padding: 4px 10px;
+        cursor: pointer;
+      }
+
+      .action-btn.icon {
+        width: 36px;
+        height: 36px;
+        padding: 0;
+        font-size: 20px;
+      }
+
+      .action-btn.label {
+        font-size: 18px;
+      }
+
+      .content {
+        position: absolute;
+        top: 168px;
+        bottom: 138px;
+        left: 0;
+        right: 0;
+        display: flex;
+        background: #fff;
+      }
+
+      .category {
+        width: 116px;
+        background: var(--left-bg);
+        border-right: 1px solid var(--line);
+        overflow: auto;
+        padding: 8px 6px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .cat-item {
+        height: 72px;
+        border: 1px solid #e7ebea;
+        border-radius: 12px;
+        background: #f7f8f8;
+        display: grid;
+        grid-template-columns: 18px 1fr;
+        grid-template-rows: 1fr 1fr;
+        align-items: center;
+        gap: 0 6px;
+        padding: 10px 9px;
+        text-align: left;
+        color: #464d56;
+        cursor: pointer;
+        touch-action: manipulation;
+      }
+
+      .cat-item.active {
+        background: #fff;
+        border-color: #cde6d9;
+        box-shadow: inset 3px 0 0 #2f8b5b;
+        color: #2f8b5b;
+      }
+
+      .cat-icon {
+        grid-row: 1 / 3;
+        font-size: 15px;
+        display: grid;
+        place-items: center;
+      }
+
+      .cat-name {
+        font-size: 14px;
+        font-weight: 700;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .cat-extra {
+        font-size: 11px;
+        color: #8a929a;
+      }
+
+      .menu {
+        flex: 1;
+        overflow: auto;
+      }
+
+      .section-head {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        background: #fff;
+        padding: 10px 14px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .section-title {
+        font-size: 28px;
+        font-weight: 700;
+      }
+
+      .section-subtitle {
+        margin-top: 4px;
+        font-size: 13px;
+        color: var(--text-sub);
+      }
+
+      .dish {
+        display: grid;
+        grid-template-columns: 72px 1fr auto;
+        gap: 10px;
+        padding: 11px 14px;
+        border-bottom: 1px solid #f2f4f3;
+        align-items: center;
+      }
+
+      .thumb {
+        width: 72px;
+        height: 72px;
+        border-radius: 10px;
+        background:
+          radial-gradient(circle at 25% 20%, rgba(255, 255, 255, 0.9), transparent 35%),
+          linear-gradient(135deg, #c9f3ef, #8ed9d0);
+        border: 1px solid rgba(90, 139, 127, 0.2);
+      }
+
+      .dish-name {
+        font-size: 19px;
+        font-weight: 800;
+        line-height: 1.15;
+      }
+
+      .stars {
+        color: var(--star);
+        font-size: 14px;
+        letter-spacing: 1px;
+        margin-top: 3px;
+      }
+
+      .dish-meta {
+        margin-top: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+      }
+
+      .sold {
+        color: #2f8b5b;
+        font-size: 18px;
+        font-weight: 700;
+      }
+
+      .add-btn {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        border: 0;
+        color: #fff;
+        background: #3fbf69;
+        font-size: 21px;
+        line-height: 1;
+        cursor: pointer;
+        touch-action: manipulation;
+      }
+
+      .qty-ctrl {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .qty-btn {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        border: 1px solid #ced4d1;
+        background: #fff;
+        color: #394048;
+        font-size: 21px;
+        line-height: 1;
+        cursor: pointer;
+        touch-action: manipulation;
+      }
+
+      .qty-btn.plus {
+        border: 0;
+        background: #3fbf69;
+        color: #fff;
+      }
+
+      .qty-text {
+        min-width: 16px;
+        text-align: center;
+        font-size: 30px;
+        line-height: 1;
+        color: #111;
+      }
+
+      .order-bar {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 74px;
+        height: 64px;
+        background: var(--order-bg);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 10px;
+      }
+
+      .order-left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .cart-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 21px;
+        background: rgba(255, 255, 255, 0.12);
+        display: grid;
+        place-items: center;
+        font-size: 20px;
+        position: relative;
+      }
+
+      .cart-badge {
+        position: absolute;
+        right: -5px;
+        top: -5px;
+        min-width: 18px;
+        height: 18px;
+        border-radius: 9px;
+        background: #ff334f;
+        color: #fff;
+        font-size: 11px;
+        display: grid;
+        place-items: center;
+        padding: 0 4px;
+      }
+
+      .order-line1 {
+        font-size: 14px;
+        font-weight: 700;
+      }
+
+      .order-line2 {
+        font-size: 12px;
+        color: #c6ccd3;
+        margin-top: 2px;
+      }
+
+      .order-right {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .clear-btn {
+        border: 0;
+        color: #fff;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 999px;
+        padding: 7px 11px;
+        font-size: 13px;
+        cursor: pointer;
+      }
+
+      .checkout-btn {
+        border: 0;
+        border-radius: 999px;
+        padding: 9px 16px;
+        font-size: 14px;
+        font-weight: 700;
+        color: #fff;
+        background: linear-gradient(135deg, #4dc972, #2ca85a);
+        cursor: pointer;
+        touch-action: manipulation;
+      }
+
+      .checkout-btn:disabled {
+        cursor: not-allowed;
+        opacity: 0.48;
+      }
+
+      .bottom-nav {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 74px;
+        background: var(--bottom-nav);
+        color: #f2f4f6;
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        align-items: center;
+        text-align: center;
+        font-size: 16px;
+      }
+
+      .bottom-nav span {
+        opacity: 0.92;
+      }
+
+      .bottom-nav .center {
+        font-size: 28px;
+        font-weight: 700;
+        line-height: 1;
+      }
+
+      .badge {
+        position: absolute;
+        right: 12px;
+        top: 9px;
+        min-width: 20px;
+        height: 20px;
+        border-radius: 10px;
+        background: #ff334f;
+        color: #fff;
+        font-size: 12px;
+        display: grid;
+        place-items: center;
+        padding: 0 5px;
+      }
+
+      .msg-tab {
+        position: relative;
+      }
+
+      .sheet-mask {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.35);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 200ms ease;
+      }
+
+      .sheet-mask.show {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .order-sheet {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: #fff;
+        border-radius: 18px 18px 0 0;
+        padding: 12px 14px calc(12px + env(safe-area-inset-bottom, 0));
+        transform: translateY(110%);
+        transition: transform 220ms ease;
+      }
+
+      .sheet-mask.show .order-sheet {
+        transform: translateY(0);
+      }
+
+      .sheet-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 10px;
+      }
+
+      .sheet-title {
+        font-size: 18px;
+        font-weight: 800;
+      }
+
+      .sheet-close {
+        border: 0;
+        background: #f1f3f5;
+        color: #505761;
+        width: 28px;
+        height: 28px;
+        border-radius: 14px;
+        cursor: pointer;
+      }
+
+      .sheet-list {
+        max-height: 240px;
+        overflow: auto;
+      }
+
+      .sheet-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 9px 0;
+        border-bottom: 1px solid #eff2f1;
+        font-size: 15px;
+      }
+
+      .sheet-total {
+        margin-top: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .sheet-total-text {
+        font-size: 24px;
+        color: #2f8b5b;
+        font-weight: 800;
+      }
+
+      .sheet-submit {
+        border: 0;
+        border-radius: 999px;
+        background: linear-gradient(135deg, #4dc972, #2ca85a);
+        color: #fff;
+        font-size: 15px;
+        font-weight: 700;
+        padding: 11px 18px;
+        cursor: pointer;
+      }
+
+      .toast {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 170px;
+        background: rgba(16, 18, 21, 0.86);
+        color: #fff;
+        font-size: 13px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 200ms ease;
+        z-index: 9;
+      }
+
+      .toast.show {
+        opacity: 1;
+      }
+
+      .waiting-page {
+        position: absolute;
+        inset: 0;
+        z-index: 30;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        text-align: center;
+        color: #fff;
+        padding: 20px;
+        background:
+          radial-gradient(circle at 20% 18%, rgba(255, 255, 255, 0.2), transparent 32%),
+          radial-gradient(circle at 80% 78%, rgba(255, 255, 255, 0.12), transparent 28%),
+          linear-gradient(145deg, #295c46, #163728 55%, #0f241a);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 240ms ease;
+      }
+
+      .waiting-page.show {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .wait-heart {
+        width: 86px;
+        height: 86px;
+        border-radius: 43px;
+        display: grid;
+        place-items: center;
+        font-size: 40px;
+        background: rgba(255, 255, 255, 0.17);
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.45);
+        animation: pulse 1.6s infinite;
+      }
+
+      .wait-title {
+        font-size: 26px;
+        font-weight: 900;
+        letter-spacing: 0.02em;
+      }
+
+      .wait-sub {
+        max-width: 300px;
+        line-height: 1.6;
+        font-size: 16px;
+        opacity: 0.95;
+      }
+
+      .wait-status {
+        font-size: 15px;
+        opacity: 0.88;
+      }
+
+      .wait-actions {
+        margin-top: 6px;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .wait-btn {
+        border: 0;
+        border-radius: 999px;
+        padding: 10px 14px;
+        font-size: 14px;
+        color: #fff;
+        cursor: pointer;
+      }
+
+      .wait-btn.ghost {
+        background: rgba(255, 255, 255, 0.2);
+      }
+
+      .wait-btn.primary {
+        background: linear-gradient(135deg, #55d17a, #2ead5c);
+      }
+
+      .receiver-page {
+        position: absolute;
+        inset: 0;
+        z-index: 32;
+        padding: 16px 14px calc(20px + env(safe-area-inset-bottom, 0));
+        background: linear-gradient(180deg, #f7fbf8, #eef5f1);
+        display: flex;
+        flex-direction: column;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 220ms ease;
+      }
+
+      .receiver-page.show {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .receiver-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 4px;
+      }
+
+      .receiver-title {
+        font-size: 22px;
+        font-weight: 900;
+        color: #1b2a22;
+      }
+
+      .receiver-back {
+        border: 0;
+        border-radius: 999px;
+        padding: 8px 12px;
+        font-size: 13px;
+        color: #fff;
+        background: linear-gradient(135deg, #44b767, #289f52);
+        cursor: pointer;
+      }
+
+      .receiver-sub {
+        color: #5f6a63;
+        font-size: 13px;
+        margin-bottom: 8px;
+      }
+
+      .receiver-sync {
+        display: grid;
+        grid-template-columns: 1fr 1fr auto auto;
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+
+      .receiver-input {
+        border: 1px solid #cfe2d4;
+        border-radius: 10px;
+        padding: 8px 9px;
+        font-size: 12px;
+        color: #2b392f;
+        background: #fff;
+      }
+
+      .receiver-tool-btn {
+        border: 0;
+        border-radius: 10px;
+        padding: 0 10px;
+        font-size: 12px;
+        color: #fff;
+        background: #2fa45b;
+        cursor: pointer;
+      }
+
+      .receiver-tool-btn.secondary {
+        background: #6c7a72;
+      }
+
+      .receiver-hint {
+        font-size: 12px;
+        color: #5f6a63;
+        margin-bottom: 10px;
+      }
+
+      .receiver-list {
+        flex: 1;
+        overflow: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .receiver-empty {
+        margin-top: 40px;
+        text-align: center;
+        color: #6e7872;
+        font-size: 14px;
+      }
+
+      .receiver-card {
+        background: #fff;
+        border-radius: 14px;
+        border: 1px solid #d9e9de;
+        padding: 10px 11px;
+      }
+
+      .receiver-card-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
+      }
+
+      .receiver-order-id {
+        font-size: 13px;
+        font-weight: 700;
+        color: #2d3c33;
+      }
+
+      .receiver-status {
+        font-size: 12px;
+        border-radius: 999px;
+        padding: 4px 8px;
+        background: #e9f7ef;
+        color: #2f8b5b;
+      }
+
+      .receiver-items {
+        font-size: 14px;
+        color: #223027;
+        line-height: 1.6;
+      }
+
+      .receiver-foot {
+        margin-top: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .receiver-time {
+        font-size: 12px;
+        color: #6a7570;
+      }
+
+      .receiver-confirm {
+        border: 0;
+        border-radius: 999px;
+        padding: 6px 10px;
+        font-size: 12px;
+        color: #fff;
+        background: #34b463;
+        cursor: pointer;
+      }
+
+      .receiver-confirm[disabled] {
+        cursor: default;
+        opacity: 0.55;
+      }
+
+      @keyframes pulse {
+        0% {
+          box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.35);
+          transform: scale(1);
+        }
+        70% {
+          box-shadow: 0 0 0 18px rgba(255, 255, 255, 0);
+          transform: scale(1.05);
+        }
+        100% {
+          box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+          transform: scale(1);
+        }
+      }
+
+      @media (max-width: 430px) {
+        .phone {
+          border-radius: 0;
+          height: 100vh;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="phone">
+      <div class="status-bar">
+        <span>7:51</span>
+        <span>4G 95%</span>
+      </div>
+
+      <header class="header">
+        <div class="shop-line">
+          <div class="avatar"></div>
+          <div class="shop-meta">
+            <h1 class="shop-name">大臭屁的厨房</h1>
+            <div class="shop-count">共38个菜谱</div>
+          </div>
+          <div class="header-icons">
+            <button class="action-btn icon" type="button" data-action="camera">📷</button>
+            <button class="action-btn label" type="button" data-action="story">限时日常</button>
+          </div>
+        </div>
+      </header>
+
+      <section class="content">
+        <aside class="category" id="categoryList"></aside>
+        <main class="menu">
+          <div class="section-head">
+            <div class="section-title" id="sectionTitle">宝宝专属(6)</div>
+            <div class="section-subtitle" id="sectionSubtitle">宠爱互动，随时点单</div>
+          </div>
+          <div id="dishList"></div>
+        </main>
+      </section>
+
+      <div class="order-bar" id="orderBar">
+        <div class="order-left">
+          <div class="cart-icon">
+            🛒
+            <span class="cart-badge" id="orderCount">0</span>
+          </div>
+          <div>
+            <div class="order-line1" id="orderText">未选商品</div>
+            <div class="order-line2" id="orderPrice">共 0 项</div>
+          </div>
+        </div>
+        <div class="order-right">
+          <button class="clear-btn" id="clearBtn" type="button">清空</button>
+          <button class="checkout-btn" id="checkoutBtn" type="button" disabled>去下单</button>
+        </div>
+      </div>
+
+      <nav class="bottom-nav">
+        <span data-nav="home">首页</span>
+        <span data-nav="friend">朋友</span>
+        <span class="center" data-nav="post">+</span>
+        <span class="msg-tab" data-nav="msg">消息<div class="badge">99</div></span>
+        <span data-nav="me">我</span>
+      </nav>
+
+      <div class="sheet-mask" id="sheetMask">
+        <div class="order-sheet">
+          <div class="sheet-head">
+            <div class="sheet-title">确认下单</div>
+            <button class="sheet-close" id="sheetClose" type="button">×</button>
+          </div>
+          <div class="sheet-list" id="sheetList"></div>
+          <div class="sheet-total">
+            <div class="sheet-total-text" id="sheetTotal">共 0 项</div>
+            <button class="sheet-submit" id="sheetSubmit" type="button">提交订单</button>
+          </div>
+        </div>
+      </div>
+
+      <section class="waiting-page" id="waitingPage">
+        <div class="wait-heart">💚</div>
+        <div class="wait-title">你的威武璈璈大王已收到</div>
+        <div class="wait-sub">订单已经送达给她，现在是情侣互动等待页。她正在等你这边，快来接她。</div>
+        <div class="wait-status">状态：等待你这边回应中...</div>
+        <div class="wait-actions">
+          <button class="wait-btn ghost" id="waitNudgeBtn" type="button">发个提醒</button>
+          <button class="wait-btn ghost" id="waitReceiverBtn" type="button">接单端查看</button>
+          <button class="wait-btn primary" id="waitBackBtn" type="button">返回点单</button>
+        </div>
+      </section>
+
+      <section class="receiver-page" id="receiverPage">
+        <div class="receiver-head">
+          <div class="receiver-title">收到的互动订单</div>
+          <button class="receiver-back" id="receiverBackBtn" type="button">返回点单</button>
+        </div>
+        <div class="receiver-sub">两台设备填同一个同步地址和房间码，就能互相收单。</div>
+        <div class="receiver-sync">
+          <input class="receiver-input" id="syncApiInput" placeholder="同步地址，如 http://192.168.1.10:8000" />
+          <input class="receiver-input" id="syncRoomInput" placeholder="房间码，如 love-room" />
+          <button class="receiver-tool-btn" id="syncSaveBtn" type="button">连接</button>
+          <button class="receiver-tool-btn secondary" id="syncRefreshBtn" type="button">刷新</button>
+        </div>
+        <div class="receiver-hint" id="receiverHint">未连接同步服务</div>
+        <div class="receiver-list" id="receiverList"></div>
+      </section>
+
+      <div class="toast" id="toast"></div>
+    </div>
+
+    <script>
+      const SYNC_API_BASE_KEY = "couple_sync_api_base_v1";
+      const SYNC_ROOM_KEY = "couple_sync_room_v1";
+      const categoryMeta = {
+        "未分类": { icon: "🗂", subtitle: "临时菜单" },
+        "宝宝专属": { icon: "🐻", subtitle: "宠爱互动" },
+        "表达爱意": { icon: "💌", subtitle: "甜蜜表达" },
+        "我哄乖乖": { icon: "🌙", subtitle: "哄睡专区" },
+        "乖乖服务": { icon: "🛎", subtitle: "贴心服务" },
+        "特殊服务栏": { icon: "🐷", subtitle: "限量特色" },
+        "乖乖哄我": { icon: "🎧", subtitle: "反向宠我" },
+        "万能卡": { icon: "🪄", subtitle: "自定义愿望" }
+      };
+
+      const data = {
+        "未分类": [
+          { name: "今天休息", sold: 0 },
+          { name: "暂不开放", sold: 0 }
+        ],
+        "宝宝专属": [
+          { name: "要抱抱", sold: 0 },
+          { name: "求夸奖", sold: 52 },
+          { name: "要摸摸", sold: 0 },
+          { name: "累累 求哄", sold: 0 },
+          { name: "快回消息", sold: 0 },
+          { name: "我吃醋了", sold: 0 }
+        ],
+        "表达爱意": [
+          { name: "亲亲我", sold: 0 },
+          { name: "我爱你", sold: 11 },
+          { name: "贴贴", sold: 0 }
+        ],
+        "我哄乖乖": [
+          { name: "睡前故事", sold: 8 },
+          { name: "晚安吻", sold: 20 }
+        ],
+        "乖乖服务": [
+          { name: "语音安抚", sold: 3 },
+          { name: "起床提醒", sold: 6 }
+        ],
+        "特殊服务栏": [
+          { name: "吃猪咪", sold: 0 }
+        ],
+        "乖乖哄我": [
+          { name: "唱歌哄我", sold: 12 },
+          { name: "撒娇哄我", sold: 15 }
+        ],
+        "万能卡": [
+          { name: "任意愿望", sold: 1 }
+        ]
+      };
+
+      const categories = Object.keys(data);
+      const categoryList = document.getElementById("categoryList");
+      const sectionTitle = document.getElementById("sectionTitle");
+      const sectionSubtitle = document.getElementById("sectionSubtitle");
+      const dishList = document.getElementById("dishList");
+      const menu = document.querySelector(".menu");
+      const orderText = document.getElementById("orderText");
+      const orderPrice = document.getElementById("orderPrice");
+      const orderCount = document.getElementById("orderCount");
+      const clearBtn = document.getElementById("clearBtn");
+      const checkoutBtn = document.getElementById("checkoutBtn");
+      const sheetMask = document.getElementById("sheetMask");
+      const sheetList = document.getElementById("sheetList");
+      const sheetTotal = document.getElementById("sheetTotal");
+      const sheetClose = document.getElementById("sheetClose");
+      const sheetSubmit = document.getElementById("sheetSubmit");
+      const waitingPage = document.getElementById("waitingPage");
+      const waitNudgeBtn = document.getElementById("waitNudgeBtn");
+      const waitReceiverBtn = document.getElementById("waitReceiverBtn");
+      const waitBackBtn = document.getElementById("waitBackBtn");
+      const receiverPage = document.getElementById("receiverPage");
+      const receiverList = document.getElementById("receiverList");
+      const receiverBackBtn = document.getElementById("receiverBackBtn");
+      const syncApiInput = document.getElementById("syncApiInput");
+      const syncRoomInput = document.getElementById("syncRoomInput");
+      const syncSaveBtn = document.getElementById("syncSaveBtn");
+      const syncRefreshBtn = document.getElementById("syncRefreshBtn");
+      const receiverHint = document.getElementById("receiverHint");
+      const toast = document.getElementById("toast");
+
+      const state = {
+        activeCategory: "宝宝专属",
+        selected: {},
+        receiverOrders: [],
+        syncApiBase: "",
+        roomId: ""
+      };
+
+      let toastTimer;
+      let syncTimer = null;
+      let syncInFlight = false;
+
+      function normalizeApiBase(value) {
+        return (value || "").trim().replace(/\/+$/, "");
+      }
+
+      function escapeHtml(value) {
+        return String(value || "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/\"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+
+      function setReceiverHint(text, isError = false) {
+        receiverHint.textContent = text;
+        receiverHint.style.color = isError ? "#b53a4e" : "#5f6a63";
+      }
+
+      function readSyncConfig() {
+        const inferredBase = window.location.protocol.startsWith("http")
+          ? window.location.origin
+          : "http://127.0.0.1:8000";
+        state.syncApiBase = normalizeApiBase(localStorage.getItem(SYNC_API_BASE_KEY)) || inferredBase;
+        state.roomId = (localStorage.getItem(SYNC_ROOM_KEY) || "love-room").trim();
+        syncApiInput.value = state.syncApiBase;
+        syncRoomInput.value = state.roomId;
+      }
+
+      function persistSyncConfig() {
+        state.syncApiBase = normalizeApiBase(syncApiInput.value);
+        state.roomId = (syncRoomInput.value || "").trim();
+        localStorage.setItem(SYNC_API_BASE_KEY, state.syncApiBase);
+        localStorage.setItem(SYNC_ROOM_KEY, state.roomId);
+      }
+
+      async function coupleApi(path, options = {}) {
+        if (!state.syncApiBase) {
+          throw new Error("请先填写同步服务地址");
+        }
+        const response = await fetch(`${state.syncApiBase}${path}`, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          ...options
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(payload.detail || `HTTP ${response.status}`);
+        }
+        return payload;
+      }
+
+      function dishKey(category, dishName) {
+        return `${category}::${dishName}`;
+      }
+
+      function parseDishKey(key) {
+        const splitIndex = key.indexOf("::");
+        return {
+          category: key.slice(0, splitIndex),
+          dishName: key.slice(splitIndex + 2)
+        };
+      }
+
+      function getDish(category, dishName) {
+        return data[category].find((dish) => dish.name === dishName);
+      }
+
+      function getCartLines() {
+        return Object.entries(state.selected)
+          .map(([key, qty]) => {
+            const parsed = parseDishKey(key);
+            const dish = getDish(parsed.category, parsed.dishName);
+            if (!dish || qty <= 0) return null;
+            return {
+              key,
+              name: dish.name,
+              qty
+            };
+          })
+          .filter(Boolean);
+      }
+
+      function getCartSummary() {
+        const lines = getCartLines();
+        const totalQty = lines.reduce((sum, line) => sum + line.qty, 0);
+        return { lines, totalQty };
+      }
+
+      function showToast(text) {
+        clearTimeout(toastTimer);
+        toast.textContent = text;
+        toast.classList.add("show");
+        toastTimer = setTimeout(() => {
+          toast.classList.remove("show");
+        }, 1200);
+      }
+
+      function renderCategory() {
+        categoryList.innerHTML = "";
+        categories.forEach((item) => {
+          const button = document.createElement("button");
+          const dishes = data[item] || [];
+          const meta = categoryMeta[item] || { icon: "🍽", subtitle: "精选" };
+          button.type = "button";
+          button.className = `cat-item${item === state.activeCategory ? " active" : ""}`;
+          button.innerHTML = `
+            <span class="cat-icon">${meta.icon}</span>
+            <span class="cat-name">${item}</span>
+            <span class="cat-extra">${meta.subtitle} · ${dishes.length}款</span>
+          `;
+          button.addEventListener("click", () => {
+            state.activeCategory = item;
+            renderAll();
+          });
+          categoryList.appendChild(button);
+        });
+      }
+
+      function renderDishList() {
+        const category = state.activeCategory;
+        const keepScroll = menu.scrollTop;
+        const dishes = data[category] || [];
+        const meta = categoryMeta[category] || { subtitle: "精选" };
+
+        sectionTitle.textContent = `${category}(${dishes.length})`;
+        sectionSubtitle.textContent = `${meta.subtitle}，像小程序一样直接点单`;
+
+        dishList.innerHTML = dishes
+          .map((dish) => {
+            const key = dishKey(category, dish.name);
+            const encodedKey = encodeURIComponent(key);
+            const qty = state.selected[key] || 0;
+            const controls = qty > 0
+              ? `
+                <div class="qty-ctrl">
+                  <button class="qty-btn" type="button" data-role="minus" data-key="${encodedKey}">-</button>
+                  <span class="qty-text">${qty}</span>
+                  <button class="qty-btn plus" type="button" data-role="plus" data-key="${encodedKey}">+</button>
+                </div>
+              `
+              : `<button class="add-btn" type="button" data-role="plus" data-key="${encodedKey}">+</button>`;
+
+            return `
+              <article class="dish">
+                <div class="thumb"></div>
+                <div>
+                  <div class="dish-name">${dish.name}</div>
+                  <div class="stars">★★★★★</div>
+                  <div class="dish-meta">
+                    <div class="sold">🍃 ${dish.sold}</div>
+                  </div>
+                </div>
+                ${controls}
+              </article>
+            `;
+          })
+          .join("");
+
+        menu.scrollTop = keepScroll;
+      }
+
+      function renderOrderBar() {
+        const summary = getCartSummary();
+        orderCount.textContent = String(summary.totalQty);
+        orderText.textContent = summary.totalQty > 0 ? `已选 ${summary.totalQty} 份互动` : "未选商品";
+        orderPrice.textContent = `共 ${summary.totalQty} 项`;
+        checkoutBtn.disabled = summary.totalQty === 0;
+        clearBtn.style.opacity = summary.totalQty > 0 ? "1" : "0.45";
+      }
+
+      function renderOrderSheet() {
+        const summary = getCartSummary();
+        if (summary.lines.length === 0) {
+          sheetList.innerHTML = '<div class="sheet-item"><span>当前没有可下单商品</span><span>--</span></div>';
+        } else {
+          sheetList.innerHTML = summary.lines
+            .map((line) => `
+              <div class="sheet-item">
+                <span>${line.name} x ${line.qty}</span>
+                <span>x${line.qty}</span>
+              </div>
+            `)
+            .join("");
+        }
+        sheetTotal.textContent = `共 ${summary.totalQty} 项`;
+      }
+
+      function renderAll() {
+        renderCategory();
+        renderDishList();
+        renderOrderBar();
+      }
+
+      function openOrderSheet() {
+        renderOrderSheet();
+        sheetMask.classList.add("show");
+      }
+
+      function closeOrderSheet() {
+        sheetMask.classList.remove("show");
+      }
+
+      function openWaitingPage() {
+        waitingPage.classList.add("show");
+      }
+
+      function closeWaitingPage() {
+        waitingPage.classList.remove("show");
+      }
+
+      function openReceiverPage() {
+        closeWaitingPage();
+        receiverPage.classList.add("show");
+        syncReceiverOrders();
+      }
+
+      function closeReceiverPage() {
+        receiverPage.classList.remove("show");
+      }
+
+      function renderReceiverList() {
+        if (state.receiverOrders.length === 0) {
+          receiverList.innerHTML = '<div class="receiver-empty">暂时还没有收到订单</div>';
+          return;
+        }
+        receiverList.innerHTML = state.receiverOrders
+          .map((order) => {
+            const lines = (order.lines || [])
+              .map((line) => `${escapeHtml(line.name)} x${line.qty}`)
+              .join("、");
+            const isReceived = order.status === "已收到";
+            return `
+              <article class="receiver-card">
+                <div class="receiver-card-head">
+                  <span class="receiver-order-id">${escapeHtml(order.id)}</span>
+                  <span class="receiver-status">${escapeHtml(order.status || "待接收")}</span>
+                </div>
+                <div class="receiver-items">${lines}</div>
+                <div class="receiver-foot">
+                  <span class="receiver-time">${escapeHtml(order.created_at || order.createdAt || "")} · 共 ${order.total_qty || order.totalQty || 0} 项</span>
+                  <button class="receiver-confirm" type="button" data-order-id="${escapeHtml(order.id)}" ${isReceived ? "disabled" : ""}>
+                    ${isReceived ? "已确认" : "确认收到"}
+                  </button>
+                </div>
+              </article>
+            `;
+          })
+          .join("");
+      }
+
+      async function submitRemoteOrder(summary) {
+        if (!state.roomId) {
+          throw new Error("请先填写房间码");
+        }
+        const payload = {
+          room_id: state.roomId,
+          sender: "点单端",
+          total_qty: summary.totalQty,
+          lines: summary.lines.map((line) => ({
+            name: line.name,
+            qty: line.qty
+          }))
+        };
+        const data = await coupleApi("/api/couple/orders", {
+          method: "POST",
+          body: JSON.stringify(payload)
+        });
+        return data.order;
+      }
+
+      async function syncReceiverOrders() {
+        if (syncInFlight) return;
+        if (!state.syncApiBase || !state.roomId) {
+          state.receiverOrders = [];
+          renderReceiverList();
+          setReceiverHint("请先填写同步服务地址和房间码");
+          return;
+        }
+        syncInFlight = true;
+        try {
+          const query = `/api/couple/orders?room_id=${encodeURIComponent(state.roomId)}&limit=50`;
+          const data = await coupleApi(query);
+          state.receiverOrders = Array.isArray(data.items) ? data.items : [];
+          renderReceiverList();
+          setReceiverHint(`已连接 ${state.syncApiBase} · 房间 ${state.roomId}`);
+        } catch (error) {
+          setReceiverHint(`连接失败：${error.message}`, true);
+        } finally {
+          syncInFlight = false;
+        }
+      }
+
+      async function confirmRemoteOrder(orderId) {
+        await coupleApi(`/api/couple/orders/${encodeURIComponent(orderId)}/ack`, {
+          method: "POST",
+          body: JSON.stringify({
+            room_id: state.roomId,
+            receiver: "接单端"
+          })
+        });
+      }
+
+      function startSyncPolling() {
+        if (syncTimer) clearInterval(syncTimer);
+        syncReceiverOrders();
+        if (!state.syncApiBase || !state.roomId) return;
+        syncTimer = setInterval(() => {
+          syncReceiverOrders();
+        }, 2500);
+      }
+
+      dishList.addEventListener("click", (event) => {
+        const button = event.target.closest("button[data-key]");
+        if (!button) return;
+        const key = decodeURIComponent(button.dataset.key);
+        const role = button.dataset.role;
+        const current = state.selected[key] || 0;
+
+        if (role === "plus") {
+          state.selected[key] = current + 1;
+        } else if (role === "minus") {
+          if (current <= 1) {
+            delete state.selected[key];
+          } else {
+            state.selected[key] = current - 1;
+          }
+        }
+
+        renderAll();
+      });
+
+      clearBtn.addEventListener("click", () => {
+        const summary = getCartSummary();
+        if (summary.totalQty === 0) {
+          showToast("当前没有已选项目");
+          return;
+        }
+        state.selected = {};
+        renderAll();
+        showToast("已清空购物车");
+      });
+
+      checkoutBtn.addEventListener("click", () => {
+        const summary = getCartSummary();
+        if (summary.totalQty === 0) {
+          showToast("请先选择菜品");
+          return;
+        }
+        openOrderSheet();
+      });
+
+      sheetClose.addEventListener("click", closeOrderSheet);
+      sheetMask.addEventListener("click", (event) => {
+        if (event.target === sheetMask) closeOrderSheet();
+      });
+
+      sheetSubmit.addEventListener("click", async () => {
+        const summary = getCartSummary();
+        if (summary.totalQty === 0) {
+          closeOrderSheet();
+          showToast("请先选择菜品");
+          return;
+        }
+        sheetSubmit.disabled = true;
+        try {
+          await submitRemoteOrder(summary);
+          state.selected = {};
+          closeOrderSheet();
+          renderAll();
+          openWaitingPage();
+        } catch (error) {
+          showToast(`发单失败：${error.message}`);
+        } finally {
+          sheetSubmit.disabled = false;
+        }
+      });
+
+      document.querySelectorAll("[data-action]").forEach((button) => {
+        button.addEventListener("click", () => {
+          if (button.dataset.action === "camera") {
+            showToast("相机入口演示中");
+          } else {
+            showToast("限时日常入口演示中");
+          }
+        });
+      });
+
+      document.querySelectorAll("[data-nav]").forEach((item) => {
+        item.addEventListener("click", () => {
+          if (item.dataset.nav === "me") {
+            openReceiverPage();
+            return;
+          }
+          showToast("这是演示页，导航功能可继续扩展");
+        });
+      });
+
+      waitNudgeBtn.addEventListener("click", () => {
+        showToast("已发出提醒，她正在等你这边");
+      });
+
+      waitReceiverBtn.addEventListener("click", () => {
+        openReceiverPage();
+      });
+
+      waitBackBtn.addEventListener("click", () => {
+        closeWaitingPage();
+      });
+
+      receiverBackBtn.addEventListener("click", () => {
+        closeReceiverPage();
+      });
+
+      syncSaveBtn.addEventListener("click", () => {
+        persistSyncConfig();
+        startSyncPolling();
+        showToast("同步配置已保存");
+      });
+
+      syncRefreshBtn.addEventListener("click", () => {
+        syncReceiverOrders();
+      });
+
+      receiverList.addEventListener("click", async (event) => {
+        const button = event.target.closest("button[data-order-id]");
+        if (!button) return;
+        button.disabled = true;
+        try {
+          await confirmRemoteOrder(button.dataset.orderId);
+          await syncReceiverOrders();
+          showToast("你这边已确认收到订单");
+        } catch (error) {
+          button.disabled = false;
+          showToast(`确认失败：${error.message}`);
+        }
+      });
+
+      readSyncConfig();
+      startSyncPolling();
+      renderAll();
+    </script>
+  </body>
+</html>
