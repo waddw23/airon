@@ -1,0 +1,100 @@
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from pydantic import BaseModel, Field
+from typing import Optional, List, Dict, Any
+import os
+import json
+import uuid
+import random
+from datetime import datetime
+from pathlib import Path
+from urllib import request as urlrequest
+from urllib import error as urlerror
+from urllib import parse as urlparse
+
+# Existing tool logic
+from ecommerce_service import track_order, get_personalized_push, get_product_info
+from mcp_server import search_global_trends
+
+app = FastAPI(
+    title="OmniCore AI API",
+    description="企业级电商 AI 平台 API：订单、推荐、趋势、连接器接入、AIRON 对话代理。",
+    version="2.0.0"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# -------------------------------
+# Legacy request models
+# -------------------------------
+class OrderRequest(BaseModel):
+    order_id: str
+
+
+class PushRequest(BaseModel):
+    user_interest: str
+
+
+class TrendRequest(BaseModel):
+    query: str
+
+
+# -------------------------------
+# Enterprise models
+# -------------------------------
+class ConnectorCreateRequest(BaseModel):
+    platform: str
+    endpoint: str
+    auth_type: str = Field(default="Bearer Token")
+    token: Optional[str] = None
+
+
+class ConnectorTestRequest(BaseModel):
+    method: str = Field(default="GET")
+
+
+class AironChatRequest(BaseModel):
+    message: str
+    user_id: Optional[str] = None
+
+
+class CoupleOrderLine(BaseModel):
+    name: str
+    qty: int = Field(default=1, ge=1)
+
+
+class CoupleOrderCreateRequest(BaseModel):
+    room_id: str = Field(min_length=1, max_length=64)
+    sender: Optional[str] = Field(default="点单端")
+    total_qty: int = Field(ge=1)
+    lines: List[CoupleOrderLine]
+
+
+class CoupleOrderAckRequest(BaseModel):
+    room_id: str = Field(min_length=1, max_length=64)
+    receiver: Optional[str] = Field(default="接单端")
+
+
+# -------------------------------
+# In-memory enterprise store
+# -------------------------------
+CONNECTORS: List[Dict[str, Any]] = [
+    {
+        "id": str(uuid.uuid4()),
+        "platform": "淘宝/天猫",
+        "endpoint": "/api/merchant/taobao/orders",
+        "auth_type": "Bearer Token",
+        "status": "Connected",
+        "last_update": "2s 前",
+    },
+    {
+        "id": str(uuid.uuid4()),
+        "platform": "京东",
+        "endpoint": "/api/merchant/jd/inventory",
